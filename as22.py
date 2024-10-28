@@ -20,21 +20,14 @@ df['Deadline'] = pd.to_datetime(df['Deadline'])
 df['duration_days'] = (df['Deadline'] - df['Launched']).dt.days
 df['name_length'] = df['Name'].apply(lambda x: len(x.split()))
 
-# Check for non-positive values in the 'Goal' column
-if (df['Goal'] <= 0).any():
-    df = df[df['Goal'] > 0]  # Remove rows with non-positive values
-
-# Create the log of the funding goal
+# Remove rows with non-positive values in the 'Goal' column
+df = df[df['Goal'] > 0].copy()  # Ensure no negative or zero goals
 df['log_goal'] = np.log(df['Goal'])
-
-# Check for infinite values after log transformation
-if np.isinf(df['log_goal']).any():
-    st.error("The 'log_goal' contains infinite values after transformation. Please check the input data.")
 
 # Remove any rows with NaN or infinite values
 df = df.replace([np.inf, -np.inf], np.nan).dropna()
 
-# Select relevant features
+# Define features
 features = ['log_goal', 'duration_days', 'name_length', 'Category', 'Country']
 X = df[features]
 y = df['success']
@@ -49,33 +42,36 @@ selected_features = st.sidebar.multiselect("Select Features", features, default=
 # Sidebar for number of cross-validation folds
 cv_folds = st.sidebar.slider("Number of Cross-Validation Folds", min_value=2, max_value=10, value=5)
 
-# Classifier Selection (now in the main area)
+# Classifier Selection
 st.header("Classifier Selection")
 classifier_options = {
-    'Logistic Regression': LogisticRegression(),
-    'Random Forest': RandomForestClassifier(max_samples=0.1),  # 10% of the dataset
-    'Gradient Boosting': GradientBoostingClassifier()
+    'Logistic Regression': LogisticRegression(max_iter=1000),
+    'Random Forest': RandomForestClassifier(max_samples=0.1, random_state=42),  # 10% of the dataset
+    'Gradient Boosting': GradientBoostingClassifier(random_state=42)
 }
 
 selected_classifier = st.selectbox('Select Classifier', list(classifier_options.keys()))
 
+# Validate selected features
+if not selected_features:
+    st.error("Please select at least one feature.")
+    st.stop()
+
+# Dynamically determine numeric and categorical features based on selection
+numeric_features = [f for f in selected_features if f in ['log_goal', 'duration_days', 'name_length']]
+categorical_features = [f for f in selected_features if f in ['Category', 'Country']]
+
 # Preprocessing pipeline
-numeric_features = ['log_goal', 'duration_days', 'name_length']
-numeric_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='mean')),
-    ('scaler', StandardScaler())
-])
-
-categorical_features = ['Category', 'Country']
-categorical_transformer = Pipeline(steps=[
-    ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
-    ('onehot', OneHotEncoder(handle_unknown='ignore'))  # One-hot encoding for categorical features
-])
-
 preprocessor = ColumnTransformer(
     transformers=[
-        ('num', numeric_transformer, numeric_features),
-        ('cat', categorical_transformer, categorical_features)
+        ('num', Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='mean')),
+            ('scaler', StandardScaler())
+        ]), numeric_features),
+        ('cat', Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+        ]), categorical_features)
     ]
 )
 
@@ -87,7 +83,7 @@ model_pipeline = Pipeline(steps=[('preprocessor', preprocessor),
 # Split the dataset into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X[selected_features], y, test_size=0.2, random_state=42)
 
-# Evaluate Model button (now in the main area)
+# Evaluate Model button
 if st.button('Evaluate Model'):
     # Perform cross-validation
     accuracy_scores = cross_val_score(model_pipeline, X[selected_features], y, cv=cv_folds, scoring='accuracy')
