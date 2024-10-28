@@ -14,7 +14,7 @@ jsonschema-specifications==2024.10.1
 markdown-it-py==3.0.0
 markupsafe==3.0.2
 mdurl==0.1.2
-narwhals[2024-10-28 00:33:02.446954] ==1.11.0
+narwhals==1.11.0
 numpy==2.1.2
 packaging==24.1
 pandas==2.2.3
