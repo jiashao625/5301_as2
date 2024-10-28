@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 # Load the dataset
-df = pd.read_csv('kickstarter_2016.csv')
+df = pd.read_csv('raw.githubusercontent.com/jiashao625/5301_as2/refs/heads/main/kickstarter_2016.csv')
 
 # Data Preparation
 df['success'] = df['State'].apply(lambda x: 1 if x.lower() == 'successful' else 0)
