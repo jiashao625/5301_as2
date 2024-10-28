@@ -18,12 +18,12 @@ narwhals==1.11.0
 numpy==2.1.2
 packaging==24.1
 pandas==2.2.3
-pillow==10.4.0[2024-10-28 00:33:02.447195]
+pillow==10.4.0
 protobuf==5.28.3
 pyarrow==17.0.0
 pydeck==0.9.1
 pygments==2.18.0
-python-dateutil==2.9.0.post0
+python-dateutil
 pytz==2024.2
 requests==2.32.3
 rich==13.9.3
@@ -37,10 +37,7 @@ tenacity==9.0.0
 threadpoolctl==3.5.0
 toml 
 tornado==6.4.1
-
-
- + typing-extensions==4.12.2
-
- + tzdata==2024.
+typing-extensions==4.12.2
+tzdata==2024.
 urllib3==2.2.3
 watchdog==5.0.3
